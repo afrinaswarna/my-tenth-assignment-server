@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -36,11 +36,19 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/properties/:id',async(req,res)=>{
+      const id = req.params.id
+      const query = {_id:new ObjectId(id)}
+      const result = await propertyCollection.findOne(query)
+      res.send(result)
+    })
+
     app.get('/latest-properties',async(req,res)=>{
       const cursor = propertyCollection.find().sort({posted_date:-1}).limit(6)
       const result = await cursor.toArray()
       res.send(result)
     })
+
     
     app.post("/properties", async (req, res) => {
       const newProperty = req.body;
