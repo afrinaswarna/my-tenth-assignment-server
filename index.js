@@ -30,12 +30,53 @@ async function run() {
     const db = client.db("property_db");
     const propertyCollection = db.collection("properties");
 
-    app.get("/properties", async (req, res) => {
-      const cursor = propertyCollection.find().sort({posted_date:-1});
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+//     app.get("/properties", async (req, res) => {
+//       const cursor = propertyCollection.find().sort({posted_date:-1});
+//       const result = await cursor.toArray();
+//       res.send(result);
+//     });
 
+//    app.get('/properties', async (req, res) => {
+//   try {
+//     console.log("req.query:", req.query); // should log { email: 'afrinaswarna1999@gmail.com' }
+
+//     const email = req.query.email;
+//     const query = {};
+
+//     if (email) {
+//       query.email = email;
+//     }
+
+//     console.log("Final query:", query); // see what goes to MongoDB
+
+//     const result = await propertyCollection.find(query).toArray();
+//     res.send(result);
+//   } catch (error) {
+//     console.error("Error fetching properties:", error);
+//     res.status(500).send({ message: "Server error" });
+//   }
+// });
+app.get("/properties", async (req, res) => {
+  try {
+    console.log("req.query:", req.query);
+
+    const email = req.query.email; // frontend sends ?email=user@gmail.com
+    const query = {};
+
+    if (email) {
+      query.email = email; // ✅ matches your DB field name
+    }
+
+    console.log("Final query:", query);
+
+    const cursor = propertyCollection.find(query).sort({ posted_date: -1 });
+    const result = await cursor.toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).send({ message: "Server error" });
+  }
+});
     app.get('/properties/:id',async(req,res)=>{
       const id = req.params.id
       const query = {_id:new ObjectId(id)}
@@ -55,6 +96,13 @@ async function run() {
       const result = await propertyCollection.insertOne(newProperty);
       res.send(result);
     });
+
+    app.delete('/properties/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await propertyCollection.deleteOne(query);
+            res.send(result);
+        })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
