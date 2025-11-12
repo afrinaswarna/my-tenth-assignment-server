@@ -90,6 +90,32 @@ app.get("/properties", async (req, res) => {
       res.send(result)
     })
 
+    app.put("/properties/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedData = req.body;
+
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: {
+        property_name: updatedData.property_name,
+        short_description: updatedData.short_description,
+        category: updatedData.category,
+        property_price: updatedData.property_price,
+        location: updatedData.location,
+        image_link: updatedData.image_link,
+      },
+    };
+
+    const result = await propertyCollection.updateOne(filter, updateDoc);
+    res.send(result);
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+
+
     
     app.post("/properties", async (req, res) => {
       const newProperty = req.body;
