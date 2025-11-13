@@ -132,7 +132,7 @@ async function run() {
         const result = await reviewCollection.insertOne(newReview);
         res.send(result);
       } catch (error) {
-        console.error("Error submitting review:", error);
+        console.error("Error message:", error);
         res.status(500).send({ message: "Failed to submit review" });
       }
     });
