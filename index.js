@@ -108,7 +108,7 @@ async function run() {
     app.get("/user-reviews", async (req, res) => {
       try {
         const userEmail = req.query.email;
-        // console.log(userEmail)
+        
 
         if (!userEmail) {
           return res.status(400).send({ message: "User email is required." });
@@ -138,27 +138,7 @@ async function run() {
     });
 
     
-    // app.get("/reviews", async (req, res) => {
-    //   const cursor = reviewCollection.find().sort({ review_date: -1 });
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-
-    // app.get("/reviews/:propertyId", async (req, res) => {
-    //   try {
-    //     const propertyId = req.params.propertyId;
-    //     const query = { property_id: propertyId }; // Assuming property_id is stored as a string
-
-    //     // Sort by most recent review
-    //     const cursor = reviewCollection.find(query).sort({ review_date: -1 });
-    //     const result = await cursor.toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     console.error("Error fetching property reviews:", error);
-    //     res.status(500).send({ message: "Failed to fetch reviews" });
-    //   }
-    // });
-    // 3. GET /user-reviews (Fetch reviews for My Ratings Page)
+    
 
     await client.db("admin").command({ ping: 1 });
     console.log(
