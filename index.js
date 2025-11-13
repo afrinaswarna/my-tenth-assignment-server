@@ -29,106 +29,136 @@ async function run() {
 
     const db = client.db("property_db");
     const propertyCollection = db.collection("properties");
+    const reviewCollection = db.collection("reviews");
 
-//     app.get("/properties", async (req, res) => {
-//       const cursor = propertyCollection.find().sort({posted_date:-1});
-//       const result = await cursor.toArray();
-//       res.send(result);
-//     });
+    app.get("/properties", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const query = {};
 
-//    app.get('/properties', async (req, res) => {
-//   try {
-//     console.log("req.query:", req.query); // should log { email: 'afrinaswarna1999@gmail.com' }
+        if (email) {
+          query.email = email; //
+        }
 
-//     const email = req.query.email;
-//     const query = {};
+        const cursor = propertyCollection.find(query).sort({ posted_date: -1 });
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
+    app.get("/properties/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertyCollection.findOne(query);
+      res.send(result);
+    });
 
-//     if (email) {
-//       query.email = email;
-//     }
-
-//     console.log("Final query:", query); // see what goes to MongoDB
-
-//     const result = await propertyCollection.find(query).toArray();
-//     res.send(result);
-//   } catch (error) {
-//     console.error("Error fetching properties:", error);
-//     res.status(500).send({ message: "Server error" });
-//   }
-// });
-app.get("/properties", async (req, res) => {
-  try {
-    console.log("req.query:", req.query);
-
-    const email = req.query.email; // frontend sends ?email=user@gmail.com
-    const query = {};
-
-    if (email) {
-      query.email = email; // ✅ matches your DB field name
-    }
-
-    console.log("Final query:", query);
-
-    const cursor = propertyCollection.find(query).sort({ posted_date: -1 });
-    const result = await cursor.toArray();
-    res.send(result);
-  } catch (error) {
-    console.error("Error fetching properties:", error);
-    res.status(500).send({ message: "Server error" });
-  }
-});
-    app.get('/properties/:id',async(req,res)=>{
-      const id = req.params.id
-      const query = {_id:new ObjectId(id)}
-      const result = await propertyCollection.findOne(query)
-      res.send(result)
-    })
-
-    app.get('/latest-properties',async(req,res)=>{
-      const cursor = propertyCollection.find().sort({posted_date:-1}).limit(6)
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+    app.get("/latest-properties", async (req, res) => {
+      const cursor = propertyCollection
+        .find()
+        .sort({ posted_date: -1 })
+        .limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     app.put("/properties/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const updatedData = req.body;
+      try {
+        const id = req.params.id;
+        const updatedData = req.body;
 
-    const filter = { _id: new ObjectId(id) };
-    const updateDoc = {
-      $set: {
-        property_name: updatedData.property_name,
-        short_description: updatedData.short_description,
-        category: updatedData.category,
-        property_price: updatedData.property_price,
-        location: updatedData.location,
-        image_link: updatedData.image_link,
-      },
-    };
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            property_name: updatedData.property_name,
+            short_description: updatedData.short_description,
+            category: updatedData.category,
+            property_price: updatedData.property_price,
+            location: updatedData.location,
+            image_link: updatedData.image_link,
+          },
+        };
 
-    const result = await propertyCollection.updateOne(filter, updateDoc);
-    res.send(result);
-  } catch (error) {
-    console.error("Error updating property:", error);
-    res.status(500).send({ message: "Server error" });
-  }
-});
+        const result = await propertyCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating property:", error);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
 
-
-    
     app.post("/properties", async (req, res) => {
       const newProperty = req.body;
       const result = await propertyCollection.insertOne(newProperty);
       res.send(result);
     });
 
-    app.delete('/properties/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-            const result = await propertyCollection.deleteOne(query);
-            res.send(result);
-        })
+    app.delete("/properties/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertyCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // review related apis
+
+
+    app.get("/user-reviews", async (req, res) => {
+      try {
+        const userEmail = req.query.email;
+        // console.log(userEmail)
+
+        if (!userEmail) {
+          return res.status(400).send({ message: "User email is required." });
+        }
+
+        const query = { reviewer_email: userEmail };
+
+        const cursor = reviewCollection.find(query).sort({ review_date: -1 });
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching user reviews:", error);
+        res.status(500).send({ message: "Failed to fetch user reviews" });
+      }
+    });
+    app.post("/reviews", async (req, res) => {
+      try {
+        const newReview = req.body;
+        newReview.review_date = new Date().toISOString();
+
+        const result = await reviewCollection.insertOne(newReview);
+        res.send(result);
+      } catch (error) {
+        console.error("Error submitting review:", error);
+        res.status(500).send({ message: "Failed to submit review" });
+      }
+    });
+
+    
+    // app.get("/reviews", async (req, res) => {
+    //   const cursor = reviewCollection.find().sort({ review_date: -1 });
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
+
+    // app.get("/reviews/:propertyId", async (req, res) => {
+    //   try {
+    //     const propertyId = req.params.propertyId;
+    //     const query = { property_id: propertyId }; // Assuming property_id is stored as a string
+
+    //     // Sort by most recent review
+    //     const cursor = reviewCollection.find(query).sort({ review_date: -1 });
+    //     const result = await cursor.toArray();
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.error("Error fetching property reviews:", error);
+    //     res.status(500).send({ message: "Failed to fetch reviews" });
+    //   }
+    // });
+    // 3. GET /user-reviews (Fetch reviews for My Ratings Page)
 
     await client.db("admin").command({ ping: 1 });
     console.log(
