@@ -25,8 +25,6 @@ app.get("/", (req, res) => {
 
 async function run() {
   try {
-    await client.connect();
-
     const db = client.db("property_db");
     const propertyCollection = db.collection("properties");
     const reviewCollection = db.collection("reviews");
@@ -104,11 +102,9 @@ async function run() {
 
     // review related apis
 
-
     app.get("/user-reviews", async (req, res) => {
       try {
         const userEmail = req.query.email;
-        
 
         if (!userEmail) {
           return res.status(400).send({ message: "User email is required." });
@@ -137,10 +133,7 @@ async function run() {
       }
     });
 
-    
-    
-
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
